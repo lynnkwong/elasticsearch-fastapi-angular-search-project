@@ -1,0 +1,58 @@
+version: "3.9"
+
+services:
+  fastapi:
+    build:
+      context: ./backend
+    image: fastapi-search:latest
+    ports:
+      - target: 80
+        published: 8080
+    volumes:
+      - type: bind
+        source: ./backend/app
+        target: /fastapi/app
+    networks:
+      - search-service
+    environment:
+      - PYTHONPATH=/fastapi:.:..
+      - ES_HOST=http://elasticsearch:9200
+    env_file:
+      # Credentials that should not be added to the repo.
+      - ./backend/app/config/.env
+    command: uvicorn app.main:app --host 0.0.0.0 --port 80 --reload
+
+  elasticsearch:
+    image: elasticsearch:8.6.2
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - xpack.security.enabled=false
+    volumes:
+      - type: volume
+        source: es_data
+        target: /usr/share/elasticsearch/data
+    ports:
+      - target: 9200
+        published: 9200
+    networks:
+      - search-service
+
+  kibana:
+    image: kibana:8.6.2
+    ports:
+      - target: 5601
+        published: 5601
+    networks:
+      - search-service
+    depends_on:
+      - elasticsearch
+
+volumes:
+  es_data:
+    driver: local
+
+networks:
+  search-service:
+    name: search-service
+    driver: bridge

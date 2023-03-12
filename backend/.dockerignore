@@ -1,0 +1,15 @@
+# Ignore virtual environment.
+.venv
+
+# Ignore Python compiled bytecode.
+*.pyc
+__pycache__
+
+# Ignore mypy and pytest related files.
+.mypy_cache
+.pytest_cache
+
+# Ignore custom IDE folders.
+*.sublime-workspace
+*.idea*
+*.vscode
